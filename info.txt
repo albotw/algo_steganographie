@@ -33,3 +33,13 @@ bin_pgcd
 Origine wikipédia / Cormen et al. dans introduction à l'algorithmique
 inv_mod (algorithme d'euleur étendu)
 https://stackoverflow.com/questions/16950687/integer-exponentiation-in-ocaml
+
+let rec _mod_pow x y n = 
+  let base = x  n in
+  match y with 
+  | 0 -> 1
+  | 1 -> x
+  | y -> 
+      if y mod 2 = 0 then mod_pow (base * ( base mod n)) (y / 2) n
+      else (base * (mod_pow base (y - 1) n)) mod n
+;;
