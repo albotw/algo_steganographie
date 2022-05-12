@@ -1,0 +1,35 @@
+
+int modpow (base exp n) =
+  base = base mod n
+  if exp = 0 return 1
+  if exp = 1 return base
+  if exp mod 2 = 0 
+      return modpow (base * base % n, exp / 2, n);
+  else 
+      return base * modpow(base, exp-1, n) mod n;
+
+Origine wikipédia
+Témoin_de_Miller(n, a):    entrées : n un entier impair ≥ 3, a un entier > 1 
+    calculer s et d tels que n - 1 = 2s×d avec d impair     s > 0 car n impair
+    x := ad mod n                 x entier reste de la division de ad par n
+    si x = 1 ou x = n - 1
+      renvoyer Faux               Fin d'exécution : a n'est pas un témoin de Miller
+    Répéter s - 1 fois
+          x := x2 mod n            reste de la division de x2 par n
+          si x = n - 1
+            renvoyer Faux          Sortie de boucle et fin d'exécution: a n'est pas un témoin de Miller
+    Fin de boucle Répéter
+    renvoyer Vrai
+
+Pour sortir a avec n : Big_Int,
+on peut tirer au sort deux nombres sous la forme a^b
+  a -> Random.int32
+  b -> Random.int32
+sachant qu'on doit avoir a dans l'intervale 2, n-1
+
+Origine wikipédia:
+bin_pgcd
+
+Origine wikipédia / Cormen et al. dans introduction à l'algorithmique
+inv_mod (algorithme d'euleur étendu)
+https://stackoverflow.com/questions/16950687/integer-exponentiation-in-ocaml

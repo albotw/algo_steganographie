@@ -1,0 +1,27 @@
+Librairie camlimages
+librairie nums.camlimages
+test probabiliste de primalité: https://www.lama.univ-savoie.fr/mediawiki/index.php/Algorithmes_probabilistes/d%C3%A9terministes_pour_tester_la_primalit%C3%A9_d%27un_entier
+RSA: https://fr.wikipedia.org/wiki/Chiffrement_RSA
+inverse modulaire: https://fr.wikipedia.org/wiki/Inverse_modulaire
+
+- Convertir l'image au format correct (BMP ?)
+
+- RSA
+  - 2 très grands nombres premiers p et q
+  - n = pq
+  - phi(n) = (p - 1)*(q - 1)
+  - e premier avec n et e < n => PGCD(e, n) == 1
+  - d inverse? de e % phi(n) et d < phi(n)
+
+- Cryptage
+  - c = message ^ e (mod n si c > n)
+  - padder le mesage pour qu'il soit de la même taille que l'image
+  - pour chaque pixel de couleur de l'image
+    - suppression des bits de poids fabile
+    - remplacement par les bits du message
+  - enregistrement
+
+- Decryptage
+  - pour chaque pixel de l'image on sort les bits de poids faible que l'on ajoute dans un buffer
+  - message = buffer ^ (nd) mod n si message > n
+  
