@@ -2,6 +2,27 @@
 open Random;;
 open Num;;
 open Big_int;;
+open Char;;
+open Camlimages;;
+open Color;;
+let load_rgb_matrix name =
+  let img = Images.load name [] in
+  let gimg = Graphic_image.array_of_image img in
+  let rgb color =
+    let quot n = n mod 256, n / 256 in
+    let b, rg = quot color in
+    let g, r = quot rg in
+    r, g, b
+  in
+  Array.map (Array.map rgb) gimg;;
+
+  let image = load_rgb_matrix "mario.bmp";;
+
+let (r,g,b) = image.(0).(0);;
+Printf.printf "test : %d" r;;
+
+
+
 
 Random.self_init ();;
 
@@ -66,10 +87,10 @@ let is_prime n k =
 ;;
 
 let rec generate_prime () = 
-  let tmp = i2n (Random.full_int 1000) in
+  let tmp = (i2n (Random.full_int Int.max_int))in
   (*Printf.printf "random: %s \n" (n2s tmp);*)
   if (mod_num tmp two = zero) = false then
-    if is_prime tmp (i2n 8192) then tmp
+    if is_prime tmp (i2n 128) then tmp
     else generate_prime ()
   else generate_prime ()
   ;;
@@ -115,6 +136,63 @@ let extended_euclid a n =
 ;;
 
 
+let string_to_bits s = 
+      String.fold_right (fun car out -> let ascii = Char.code car in 
+      let rec ascii_to_bits ascii (out,acc) = 
+        if acc < 8 then
+          if ascii/2 = 0 then ascii_to_bits (ascii/2) (((ascii mod 2)::(out)),acc+1)
+          else ascii_to_bits (ascii/2) (((ascii mod 2)::(out)),acc+1)
+        else
+          out
+      in
+      ascii_to_bits ascii (out,0)) s []
+    ;;
+
+
+
+    let recupbits img size = 
+      let rec recupbits_aux img size acc x y = 
+        let (r,g,b) = img.(y).(x)in
+        if size = 0 then 
+          acc
+        else
+          if y < Array.length img then
+            recupbits_aux img (size-1) (acc@[r land 1]) x (y+1)
+          else
+            recupbits_aux img (size-1) (acc@[r land 1]) (x+1) 0
+      in
+      recupbits_aux img size [] 0 0;;
+
+let len_binary a =
+  let rec len_binary_aux a r =
+    if a // (i2n 2) =/ zero then r+1
+    else len_binary_aux (quo_num a (i2n 2)) r+1 in
+    len_binary_aux a 0
+;;
+
+let num_to_bits num = 
+  let rec num_to_bits_aux num acc =
+    (*Printf.printf "number : %s" (n2s num);*)
+    if num =/ zero then (n2i (mod_num num two))::acc
+    else num_to_bits_aux (quo_num num two) ((n2i (mod_num num two))::acc) in
+    let list = num_to_bits_aux num [] in
+  Array.of_list list;;
+
+let bits_to_num bits =
+  let (number,index) = List.fold_right (fun bit (acc,n) -> if bit = 0 then (acc,n+1) 
+  else (acc +/ ( i2n (bit) */ (two **/ (i2n n))),n+1)) bits (zero,0) in
+  number;;
+
+  let bits_to_string bits = 
+    let (res,acc) = Array.fold_left (fun (out,acc) bit -> 
+      (*List.iter (Printf.printf "/ %d ") acc;*)
+      (*Printf.printf "\n";*)
+      if List.length acc = 7 then 
+        let cha = (chr (n2i (bits_to_num (acc@[bit])))) in ((out^String.make 1 cha),[])
+    else (out, (acc@[bit]))) ("",[]) bits
+  in 
+  res;;
+
 let rsa_keys = 
   let p = generate_prime () in
   Printf.printf "got p: %s \n" (n2s p);
@@ -130,13 +208,85 @@ let rsa_keys =
   (d, e, n)
 ;;
 
+(* --------------------------------------------CRYPT AND DECRYPT ------------------------------------------------ *)
+
 let (d, e, n) = rsa_keys;;
 
+
+(* TAILLE DE N A NE PAS DEPASSER *)
 Printf.printf "d: %s e: %s n: %s \n" (n2s d) (n2s e) (n2s n);;
+let size = len_binary n;;
+Printf.printf "binarylength n : %d\n" (size);;
 
-let crypted = mod_num (power_num (i2n 400) e) n;;
+(* message à encrypt transformé en bit*)
+let bits = string_to_bits "hello world!";; 
+List.iter (Printf.printf "%d / ") bits;;
+Printf.printf "\n";;
 
-Printf.printf "crypted: %s\n" (n2s crypted);;
+(* ---------- bits convertie en grand nombre ----------------- *)
+  let number = bits_to_num bits;;
+  Printf.printf "number to encrypt : %s\n" (n2s number);;
 
-let decrypted = mod_num (power_num crypted d) n;;
-Printf.printf "decrypted %s\n" (string_of_num decrypted);;
+(*Cryptage du grand nombre*)
+  let crypted = mod_num (power_num (number) e) n;;
+  Printf.printf "crypted: %s\n" (n2s crypted);;
+
+  (* passage du grand nombre crypté en bits*)
+  let bitscrypted = num_to_bits crypted;;
+  Printf.printf "length %d\n" (Array.length bitscrypted);;
+  Array.iter (Printf.printf "%d / ") bitscrypted;;
+  Printf.printf "\n";;
+ 
+
+  (* affectation du message crypté dans l'images *)
+  let h = Array.length image;;
+  let w = Array.length image.(0);;
+  Printf.printf "w : %d / h : %d \n" w h;; 
+
+  let black = {r = 0; g=0; b=0; } in
+  let acc = ref 0 in
+  let img = Rgb24.make w h black in
+    for i = 0 to w-1 do
+      for j = 0 to h-1 do
+          let (_r,_g,_b) = image.(j).(i) in
+          let colorencrypt = _r land 254 in 
+          if !acc < Array.length bitscrypted then    
+            let rfinal = (colorencrypt) lor (bitscrypted.(!acc)) in
+            let couleur = {r = rfinal; g = _g ; b = _b} in
+            acc := !acc+1;
+            Rgb24.set img i j couleur;
+            (*Printf.printf "rfinal : %d / g : %d / b : %d \n" rfinal _g _b;*)
+          else
+            let rfinal = colorencrypt lor (Random.int 1) in
+            let couleur = {r = rfinal; g = _g ; b = _b}in
+            Rgb24.set img i j couleur;
+            (*Printf.printf "rfinal : %d / g : %d / b : %d \n" rfinal _g _b;*)
+      done;
+    done ;
+
+    (* sauvegarde de l'image *)
+    Bmp.save "mario_res.bmp" [] (Images.Rgb24 img);;
+
+
+    (*recupération du message crypté*)
+    let img2decrypt = load_rgb_matrix "mario_res.bmp";;
+    
+    
+    (* recupération des bits dans l'image*)
+    let bitsdecrypt = recupbits img2decrypt ((Array.length bitscrypted));;
+    Printf.printf "length %d\n" (List.length bitsdecrypt);;
+    List.iter (Printf.printf "%d / ") bitsdecrypt;;
+    Printf.printf "\n";;
+    let numdecrypt = bits_to_num bitsdecrypt;;
+    Printf.printf "nums to decrypt : %s \n" (n2s numdecrypt);;
+
+
+    let decrypted = mod_pow numdecrypt d n;;
+Printf.printf "decrypted %s\n" (n2s decrypted);;
+
+let bitsdecrypted = num_to_bits decrypted;;
+Printf.printf "length : %d \n" (Array.length bitsdecrypted);;
+Array.iter (Printf.printf "%d / ") bitsdecrypted;;
+Printf.printf "\n";;
+let resstring = bits_to_string bitsdecrypted;;
+Printf.printf "message decrypter : %s" resstring;;
