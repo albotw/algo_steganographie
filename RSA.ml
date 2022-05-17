@@ -16,7 +16,7 @@ let load_rgb_matrix name =
   in
   Array.map (Array.map rgb) gimg;;
 
-  let image = load_rgb_matrix "mario.bmp";;
+  let image = load_rgb_matrix Sys.argv.(1);;
 
 let (r,g,b) = image.(0).(0);;
 Printf.printf "test : %d" r;;
@@ -219,7 +219,7 @@ let size = len_binary n;;
 Printf.printf "binarylength n : %d\n" (size);;
 
 (* message à encrypt transformé en bit*)
-let bits = string_to_bits "hello world!";; 
+let bits = string_to_bits Sys.argv.(2);; 
 List.iter (Printf.printf "%d / ") bits;;
 Printf.printf "\n";;
 
@@ -241,8 +241,7 @@ Printf.printf "\n";;
   (* affectation du message crypté dans l'images *)
   let h = Array.length image;;
   let w = Array.length image.(0);;
-  Printf.printf "w : %d / h : %d \n" w h;; 
-
+  Printf.printf "Encryption du message dans mario_res.bmp \n";
   let black = {r = 0; g=0; b=0; } in
   let acc = ref 0 in
   let img = Rgb24.make w h black in

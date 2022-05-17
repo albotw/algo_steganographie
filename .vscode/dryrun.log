@@ -1,4 +1,5 @@
-make.exe --dry-run --always-make --keep-going --print-directory
-'make.exe' n'est pas reconnu en tant que commande interne
-ou externe, un programme ex�cutable ou un fichier de commandes.
-
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/mnt/d/Yann/CODE/algo_steganographie'
+ocamlfind ocamlc -o RSA -package num,camlimages,camlimages.jpeg,camlimages.graphics,graphics -linkpkg RSA.ml
+make: Leaving directory '/mnt/d/Yann/CODE/algo_steganographie'
+ 
